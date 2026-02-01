@@ -127,13 +127,14 @@ def updateEntry(name):
                         file = Path("Users") / f"{name}.json"
                         with open (file, 'w') as f:
                                 json.dump(userData, f)
+                        print(f"Successfully Updated to {book['Book Name']}")
                         return
                 else:   
                         continue                        
         print("Book Not Found")
-# book["Total Pages"]
 
 
+# main
 def main():
         print("\n----- Welcome to BPT, the Book Progress Tracker software -----\n\n\n")
         name = input("What is your username? ")
