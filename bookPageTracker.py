@@ -38,7 +38,14 @@ def retrieveData(name):
 # add an entry        
 def addEntry(name, userData):
         userDataNew = {}
-        userDataNew["Book Name"] = input("What is the name of the book? ").upper()
+        while True:
+                newBook = input("What is the name of the book? ").upper()
+                for book in userData:
+                        if newBook == book["Book Name"]:
+                                print(f"Book {newBook} already exists! Try again.")
+                                return
+                break
+        userDataNew["Book Name"] = newBook
         while True:
                 pages = input("what is the total number of pages? ")
                 try:
@@ -133,6 +140,19 @@ def updateEntry(name):
                         continue                        
         print("Book Not Found")
 
+# delete an entry
+def deleteEntry(name):
+        userData = retrieveData(name)
+        bookToDelete = input(f"What is the name of the book you wish to delete? ").upper()
+        for book in userData:
+                if book["Book Name"] == bookToDelete:
+                        userData.remove(book)
+                        print(f"{bookToDelete} removed")
+                        file = Path("Users") / f"{name}.json"
+                        with open (file, 'w') as f:
+                                json.dump(userData, f)  
+                        return
+        print(f"No book found by the name '{bookToDelete}'")             
 
 # main
 def main():
@@ -142,7 +162,7 @@ def main():
         print(f"Welcome {name}")
         while True:
                 userData = retrieveData(name)
-                command = input("Enter a command: ")
+                command = input("Enter a command (H for Help): ")
                 print("\n")
                 if command.upper() == "V":
                         viewBooks(userData)
@@ -152,7 +172,11 @@ def main():
                         addEntry(name, userData)
                 elif command.upper() == "U":
                         updateEntry(name)
-                        #delete
+                elif command.upper() == "D":
+                        deleteEntry(name)
+                elif command.upper() == "H":
+                        print("V = View Entries\nQ = Quit\nA = Add Entry\nU = Update Entry\nD = Delete Entry\nH = Help\n")
+
 
 
 main()
