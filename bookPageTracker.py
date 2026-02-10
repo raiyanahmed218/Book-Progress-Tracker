@@ -35,7 +35,7 @@ def retrieveData(name):
                                 return []
                         else:
                                  return json.loads(content)
-# add an entry        
+# add an entry          
 def addEntry(name, userData):
         userDataNew = {}
         while True:
