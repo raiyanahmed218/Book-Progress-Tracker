@@ -19,6 +19,7 @@ async def root():
 @app.get("/books/{username}")
 async def get_books(username: str):
     file = Path("Users") / f"{username}.json"
+    # because we dont open the file here, it wont create the file if it doesn't exist, so we can check for the file's existence before trying to read it
     if not file.exists():
         return {"error": "User not found"}
     with open(file, 'r') as f:
