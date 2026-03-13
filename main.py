@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import json
 
 app = FastAPI()
 
 class Book(BaseModel):
     title: str
-    total_pages: int
-    current_page: int
+    total_pages: int = Field(gt=0)
+    current_page: int = Field(ge=0)
 
 
 @app.get("/")
@@ -35,10 +35,12 @@ async def add_book(username: str,book: Book):
         for b in userData:
              if b["title"] == book.title:
                   return {"error": "Book already exists"}
-        if book.total_pages <= 0:
-             return {"error": "Total pages must exceed 0"}
-        if book.current_page < 0:
-             return {"error": "Current page must be positive"}
+             
+        # so bcz we got Field validators from Pydantic, we don't need to check for total_pages and current_page validity here
+        # if book.total_pages <= 0:
+        #      return {"error": "Total pages must exceed 0"}
+        # if book.current_page < 0:
+        #      return {"error": "Current page must be positive"}
         
 
         userData.append(book.model_dump())
@@ -47,4 +49,3 @@ async def add_book(username: str,book: Book):
                 json.dump(userData, f)
         return {"message": "Successfully added entry!"}
     
-# TO DO NEXT: figure out how to read from file in main.py and error check like in bookPageTracker.py
