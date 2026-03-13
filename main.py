@@ -26,10 +26,25 @@ async def get_books(username: str):
     
 
 @app.post("/books/{username}")
-async def add_book(username: str, book: Book):
+async def add_book(username: str,book: Book):
+        
         file = Path("Users") / f"{username}.json" # this makes a Path object
+        with open(file, 'r') as f:
+             userData = json.load(f)
+        
+        for b in userData:
+             if b["title"] == book.title:
+                  return {"error": "Book already exists"}
+        if book.total_pages <= 0:
+             return {"error": "Total pages must exceed 0"}
+        if book.current_page < 0:
+             return {"error": "Current page must be positive"}
+        
+
+        userData.append(book.model_dump())
+
         with open(file, 'w') as f:
-                json.dump(book, f)
-        return {"Successfully added entry!"}
+                json.dump(userData, f)
+        return {"message": "Successfully added entry!"}
     
 # TO DO NEXT: figure out how to read from file in main.py and error check like in bookPageTracker.py
