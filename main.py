@@ -29,8 +29,12 @@ async def get_books(username: str):
 async def add_book(username: str,book: Book):
         
         file = Path("Users") / f"{username}.json" # this makes a Path object
-        with open(file, 'r') as f:
-             userData = json.load(f)
+        with open(file, 'r') as f: # this will create the file if it doesn't exist, and open it for reading
+            content = f.read()
+            if content == "":
+                userData = []
+            else:
+                userData = json.load(f)
         
         for b in userData:
              if b["title"] == book.title:
