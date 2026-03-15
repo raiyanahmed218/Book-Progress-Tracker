@@ -27,7 +27,7 @@ async def get_books(username: str):
     
 
 @app.post("/books/{username}")
-async def add_book(username: str,book: Book):
+async def add_book(username: str, book: Book):
         
         file = Path("Users") / f"{username}.json" # this makes a Path object
         with open(file, 'r') as f: # this will create the file if it doesn't exist, and open it for reading
@@ -53,4 +53,20 @@ async def add_book(username: str,book: Book):
         with open(file, 'w') as f:
                 json.dump(userData, f)
         return {"message": "Successfully added entry!"}
+
+@app.put("books/{username}")
+async def update_book(username: str, prevBook: Book, updatedBook: Book):
+     # verification first
+    file = Path("Users") / f"{username}.json"
+    with open(file, 'r') as f:
+        content = f.read()
+        if content == "":
+            return {"error": "No books to update"}
+        else:
+            userData = json.load(f)
+    for b in userData:
+        if b.title == prevBook.title:
+            b.title = updatedBook.title
+        
+        
     
