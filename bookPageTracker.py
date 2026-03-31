@@ -24,7 +24,7 @@ def userFinder(name):
                                         break
                                 elif newUser.upper() == "N":
                                         print("Try again later with a valid user")
-                                        sys.exit()
+                                        sys.exit() 
                 break
 # reads file and transforms into python objects
 def retrieveData(name):
