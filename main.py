@@ -23,19 +23,21 @@ async def get_books(username: str):
     if not file.exists():
         return {"error": "User not found"}
     with open(file, 'r') as f:
-        return json.load(f)
+        return json.loads(f)
     
 
 @app.post("/books/{username}")
 async def add_book(username: str, book: Book):
         
         file = Path("Users") / f"{username}.json" # this makes a Path object
+        if not file.exists():
+             return {"error": "User not found"}
         with open(file, 'r') as f: # this will create the file if it doesn't exist, and open it for reading
             content = f.read()
             if content == "":
                 userData = []
             else:
-                userData = json.load(f)
+                userData = json.loads(content)
         
         for b in userData:
              if b["title"] == book.title:
@@ -54,7 +56,7 @@ async def add_book(username: str, book: Book):
                 json.dump(userData, f)
         return {"message": "Successfully added entry!"}
 
-@app.put("books/{username}")
+@app.put("/books/{username}")
 async def update_book(username: str, prevBook: Book, updatedBook: Book):
      # verification first
     file = Path("Users") / f"{username}.json"
@@ -63,10 +65,10 @@ async def update_book(username: str, prevBook: Book, updatedBook: Book):
         if content == "":
             return {"error": "No books to update"}
         else:
-            userData = json.load(f)
+            userData = json.loads(content)
     for b in userData:
-        if b.title == prevBook.title:
-            b.title = updatedBook.title
+        if b["title"] == prevBook.title:
+            b["title"] = updatedBook.title
         
         
     
