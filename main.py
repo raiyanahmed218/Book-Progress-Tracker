@@ -31,7 +31,11 @@ async def add_book(username: str, book: Book):
         file = pathlib.Path("Users") / f"{username}.json" # this makes a Path object
         if not file.exists():
              return {"error": "User not found"}
-        with open(file, 'r') as f: # this will create the file if it doesn't exist, and open it for reading
+        with open(file, 'r') as f: # this will not create a new file if "file" doesnt exist, only in w or a mode it makes a new empty file if the file alr doesnt exist
+            # 'r' - read, errors if file doesn't exist
+            # 'w' - write, creates file if doesn't exist, OVERWRITES if it does
+            # 'a' - append, creates file if doesn't exist, adds to end if it does
+            # 'x' - create, creates file, errors if it already exists
             content = f.read()
             if content == "":
                 userData = []
@@ -51,7 +55,7 @@ async def add_book(username: str, book: Book):
 
         userData.append(book.model_dump())
 
-        with open(file, 'w') as f:
+        with open(file, 'w') as f: # we write here and not append because we read the existing data, modify and re-wrtie (overwriting the previous data).
                 json.dump(userData, f)
         return {"message": "Successfully added entry!"}
 
