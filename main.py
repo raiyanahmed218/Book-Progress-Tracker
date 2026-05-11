@@ -3,6 +3,7 @@ import pathlib
 import pydantic
 import json
 
+# what app is is the FastAPI instance, we will use it to define our endpoints and run the server
 app = fastapi.FastAPI()
 
 class Book(pydantic.BaseModel): # this handles automatic parsing from body to fit the structure specified and matches exactly with the name of the keys in the model and from the body.
@@ -10,7 +11,7 @@ class Book(pydantic.BaseModel): # this handles automatic parsing from body to fi
     total_pages: int = pydantic.Field(gt=0)
     current_page: int = pydantic.Field(ge=0)
 
-
+# this is the root endpoint, just to check if the server is running, we can test it by going to http://
 @app.get("/")
 async def root():
     return {"message": "BPT API is running"}
@@ -37,17 +38,21 @@ async def get_books(username: str):
 @app.post("/newUser/{newUserName}")
 async def make_new_user(newUserName: str):
     file = get_user_file(newUserName)
+    # if the file already exists, return an error 
     if file:
         return {"error": f"User {newUserName} already exists"}
     
     try:
+        # this makes the parent directory if it doesn't exist, and if it does exist, it does nothing because of exist_ok=True, and parents=True allows it to make multiple levels of directories if needed, but in this case we only have one level of directory which is "Users"
+        file.parent.mkdir(exist_ok=True, parents=True)
+        # this makes the file
         with open(file, 'w') as f:
             json.dump([], f)
         return {"message": f"User {newUserName} successfully created"}
     except OSError as e:
         return {"error": str(e)}
     
-
+# add a book to a user that exists
 @app.post("/books/{username}")
 async def add_book(username: str, book: Book):
         file = get_user_file(username)
@@ -58,13 +63,16 @@ async def add_book(username: str, book: Book):
             # 'w' - write, creates file if doesn't exist, OVERWRITES if it does
             # 'a' - append, creates file if doesn't exist, adds to end if it does
             # 'x' - create, creates file, errors if it already exists
-            content = f.read()
-            if content == "":
-                userData = []
-            else:
-                userData = json.loads(content)
-        
-        for b in userData:
+
+
+            # content = f.read()
+            # if content == "":
+            #     userData = []
+            # else:
+                # userData = json.loads(content)
+            userData = json.load(f) # so since make new user creates a file with [] and also at the start of this function we check if the file exists, we can be sure that the file exists and has [] if there are no books, so we can just do json.load without checking for empty string first.
+            
+        for b in userData: # this is reading Book objects from a list
              if b["title"] == book.title:
                   return {"error": "Book already exists"}
              
@@ -90,11 +98,12 @@ async def update_book(username: str, prevBookName: str, updatesToBook: Book):
     
     # get the current userdata
     with open(file, 'r') as f:
-        content = f.read()
-        if content == "":
-            return {"error": "No books to update"}
-        else:
-            userData = json.loads(content)
+        # content = f.read()
+        # if content == "":
+        #     return {"error": "No books to update"}
+        # else:
+        #     userData = json.loads(content)
+        userData = json.load(f)
     # check for if the specified book exists
     for b in userData:
         # update book
