@@ -24,7 +24,7 @@ def get_user_file(username: str):
     else:
         return None
 
-# retrieve data
+# retrieve data/ view book data
 @app.get("/books/{username}")
 async def get_books(username: str):
     # because we dont open the file here, it wont create the file if it doesn't exist, so we can check for the file's existence before trying to read it
@@ -37,18 +37,18 @@ async def get_books(username: str):
 # add a new user 
 @app.post("/newUser/{newUserName}")
 async def make_new_user(newUserName: str):
-    file = get_user_file(newUserName)
+    file = pathlib.Path("Users") / f"{newUserName}.json"
+    # this makes the parent directory if it doesn't exist, and if it does exist, it does nothing because of exist_ok=True, and parents=True allows it to make multiple levels of directories if needed, but in this case we only have one level of directory which is "Users"
+    file.parent.mkdir(exist_ok=True, parents=True)
     # if the file already exists, return an error 
-    if file:
-        return {"error": f"User {newUserName} already exists"}
+    if file.exists():
+        return {"error": f"User '{newUserName}' already exists"}
     
     try:
-        # this makes the parent directory if it doesn't exist, and if it does exist, it does nothing because of exist_ok=True, and parents=True allows it to make multiple levels of directories if needed, but in this case we only have one level of directory which is "Users"
-        file.parent.mkdir(exist_ok=True, parents=True)
         # this makes the file
         with open(file, 'w') as f:
             json.dump([], f)
-        return {"message": f"User {newUserName} successfully created"}
+        return {"message": f"User '{newUserName}' successfully created"}
     except OSError as e:
         return {"error": str(e)}
     
@@ -114,11 +114,28 @@ async def update_book(username: str, prevBookName: str, updatesToBook: Book):
             # write new userdata back to file
             with open(file, 'w') as f:
                 json.dump(userData, f)
-            return {"message": f"Book {prevBookName} successfully updated"}
+            return {"message": f"Book '{prevBookName}' successfully updated"}
     
-    return {"error": f"Book {prevBookName} not found"}
+    return {"error": f"Book '{prevBookName}' not found"}
 
-     
+@app.delete("/books/{username}/{bookName}")
+async def delete_book(username: str, bookName: str):
+    file = get_user_file(username)
+
+    if not file:
+        return {"error": "User does not exist"}
+
+    with open(file, "r") as f:
+        userData = json.load(f)
+    
+    for b in userData:
+        if b["title"] == bookName:
+            # .pop(index) or .remove(specific element) for lists
+            # .pop(key) for dicts and we also get the value
+            userData.remove(b)
+            with open(file, "w") as f:
+                json.dump(userData, f)
+            return {"message": f"Book '{bookName}' successfully removed"}
     
 # to run use -> python -m uvicorn main:app --reload
 

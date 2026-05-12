@@ -178,7 +178,7 @@ def main():
                         print("V = View Entries\nQ = Quit\nA = Add Entry\nU = Update Entry\nD = Delete Entry\nH = Help\n")
 
 
-
-main()
+if __name__ == "__main__":
+        main()
 
 
