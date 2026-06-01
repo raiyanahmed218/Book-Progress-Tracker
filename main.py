@@ -139,11 +139,11 @@ async def delete_book(username: str, bookName: str):
     with open(file, "r") as f:
         userData = json.load(f)
     
-    for b in userData:
+    for b in userData["books"]:
         if b["title"] == bookName:
             # .pop(index) or .remove(specific element) for lists
             # .pop(key) for dicts and we also get the value
-            userData.remove(b)
+            userData["books"].remove(b)
             with open(file, "w") as f:
                 json.dump(userData, f)
             return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' successfully removed"}, status_code=200)
