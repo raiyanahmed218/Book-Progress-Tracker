@@ -42,7 +42,8 @@ async def get_books(username: str):
     if not file:
         return fastapi.responses.JSONResponse(content={"error": "User not found"}, status_code=404)
     with open(file, 'r') as f:
-        return fastapi.responses.JSONResponse(content=json.load(f), status_code=200)
+        userData = json.load(f)
+        return fastapi.responses.JSONResponse(content=userData["books"], status_code=200)
 
 # add a new user 
 @app.post("/newUser/{newUserName}")
@@ -53,11 +54,11 @@ async def make_new_user(newUserName: str):
     # if the file already exists, return an error 
     if file.exists():
         return fastapi.responses.JSONResponse(content={"error": f"User '{newUserName}' already exists"}, status_code=409)
-    
+    password = "" # we can add password functionality later, but for now we just have an empty string for the password field in the json file, and we can also add a "books" field which is an empty list to hold the user's books, so that when we add a book we can just append to that list and write it back to the file, instead of having to check if the file is empty or not and then decide whether to create a new list or append to the existing one.
     try:
         # this makes the file
         with open(file, 'w') as f:
-            json.dump([], f)
+            json.dump({"password": password, "books": []}, f)
         return fastapi.responses.JSONResponse(content={"message": f"User '{newUserName}' successfully created"}, status_code=201)
     except OSError as e:
         return fastapi.responses.JSONResponse(content={"error": str(e)}, status_code=400)
@@ -82,7 +83,7 @@ async def add_book(username: str, book: Book):
                 # userData = json.loads(content)
             userData = json.load(f) # so since make new user creates a file with [] and also at the start of this function we check if the file exists, we can be sure that the file exists and has [] if there are no books, so we can just do json.load without checking for empty string first.
             
-        for b in userData: # this is reading Book objects from a list
+        for b in userData["books"]: # this is reading Book objects from a list
              if b["title"] == book.title:
                   return fastapi.responses.JSONResponse(content={"error": "Book already exists"}, status_code=409)
              
@@ -115,7 +116,7 @@ async def update_book(username: str, prevBookName: str, updatesToBook: Book):
         #     userData = json.loads(content)
         userData = json.load(f)
     # check for if the specified book exists
-    for b in userData:
+    for b in userData["books"]:
         # update book
         if b["title"] == prevBookName:
             b["title"] = updatesToBook.title
@@ -138,11 +139,11 @@ async def delete_book(username: str, bookName: str):
     with open(file, "r") as f:
         userData = json.load(f)
     
-    for b in userData:
+    for b in userData["books"]:
         if b["title"] == bookName:
             # .pop(index) or .remove(specific element) for lists
             # .pop(key) for dicts and we also get the value
-            userData.remove(b)
+            userData["books"].remove(b)
             with open(file, "w") as f:
                 json.dump(userData, f)
             return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' successfully removed"}, status_code=200)
