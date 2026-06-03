@@ -94,7 +94,7 @@ async def add_book(username: str, book: Book):
         #      return {"error": "Current page must be positive"}
         
 
-        userData.append(book.model_dump())
+        userData["books"].append(book.model_dump())
 
         with open(file, 'w') as f: # we write here and not append because we read the existing data, modify and re-wrtie (overwriting the previous data).
                 json.dump(userData, f)

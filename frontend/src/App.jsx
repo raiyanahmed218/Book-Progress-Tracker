@@ -1,4 +1,5 @@
 import React from "react"
+import './App.css'
 function App() {
     // Using array destructuring to get the username and setUsername from useState
     // state[0] is the current value of username, and state[1] is the function to update it called the setter
@@ -18,22 +19,23 @@ function App() {
     }
 
     return (
-        <div>
+        <div className="container">
             <h1>Book Page Tracker</h1>
             <h2>Track the progress of books you are reading!</h2>
-            <input 
-                size="60"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-            />
-            <button onClick={getBooks}>Load Books</button>
-            
-            <div style={{ marginTop: '50px' }}>
+            <div className="search-bar">
+                <input 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter username"
+                />
+                <button onClick={getBooks}>Load Books</button>
+            </div>
+            <div>
                 {books.map((book, index) => (
-                    <div key={index}>
-                        <h2 style={{ color: '#EF6461' }}>Title: {book.title}</h2>
-                        <h3 style={{ paddingBottom: '100px'}}>Progress: Page {book.current_page} of {book.total_pages}</h3>
+                    <div className="book-item" key={index}>
+                        <h4 className="h4InLine">Book: {index + 1}</h4>
+                        <h2 className="h2InLine">Title: {book.title}</h2>
+                        <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
                     </div>
                 ))}
             </div>
