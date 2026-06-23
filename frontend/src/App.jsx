@@ -9,13 +9,35 @@ function App() {
     // const username = state[0]
     // const setUsername = state[1]
     const [books, setBooks] = React.useState([])
+    const [errors, setErrors] = React.useState("")
+    // IMPORTANT: general loop is make a variable that also get set and then in the return, check if the variable is set and return something on the webpage based on that
+    const [loading, setLoading] = React.useState(false)
 
 
     
     async function getBooks() {
-        const response = await fetch(`http://127.0.0.1:8000/books/${username}`)
-        const data = await response.json()
-        setBooks(data)
+        setLoading(true)
+        setErrors("")
+        setBooks([])
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/books/${username}`)
+
+            if (response.status == 404) {
+                throw new Error("User Not Found")
+            }
+
+            if (!response.ok) {
+                throw new Error("Something Went Wrong")
+            }
+
+            const data = await response.json()
+            setBooks(data)
+        } catch (err) {
+            setErrors(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -30,6 +52,16 @@ function App() {
                 />
                 <button onClick={getBooks}>Load Books</button>
             </div>
+
+            {loading && <p>Loading...</p>}
+
+            {errors && (
+                <p style={{color: "red"}}>
+                    {errors}
+                </p>
+            )}
+
+
             <div>
                 {books.map((book, index) => (
                     <div className="book-item" key={index}>
