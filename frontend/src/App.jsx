@@ -15,15 +15,19 @@ function App() {
     const [newUser, setNewUser] = React.useState(false)
     const [password, setPassword] = React.useState("")
     const [success, setSuccess] = React.useState("")
-
-
+    const [addBook, setAddBook] = React.useState(false)
+    const [newTitle, setNewTitle] = React.useState("")
+    const [newTotalPages, setNewTotalPages] = React.useState("")
+    const [newCurrentPage, setNewCurrentPage] = React.useState("")
     
     async function getBooks() {
         setLoading(true)
         setErrors("")
         setBooks([])
         setNewUser(false)
-
+        setPassword("")
+        setSuccess("")
+        setAddBook(false)
         try {
             const response = await fetch(`http://127.0.0.1:8000/books/${username}`)
 
@@ -40,6 +44,7 @@ function App() {
             setSuccess("")
             setNewUser(false)
             setBooks(data)
+            setAddBook(true)
         } catch (err) {
             setErrors(err.message)
         } finally {
@@ -73,6 +78,35 @@ function App() {
             setSuccess("Account created! You can now load your books.")
             setPassword("")
         } catch (err) {
+            setErrors(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+    
+
+    async function addBookFunc() {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/books/${username}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                title: newTitle, 
+                current_page: parseInt(newCurrentPage), 
+                total_pages: parseInt(newTotalPages) 
+                })
+            })
+            if (!response.ok) {
+                throw new Error("Something Went Wrong")
+            }
+            await getBooks()
+            setNewTitle("")
+            setNewCurrentPage("")
+            setNewTotalPages("")
+        }
+        catch (err) {
             setErrors(err.message)
         } finally {
             setLoading(false)
@@ -113,6 +147,26 @@ function App() {
                 </p>
             )}
 
+            {addBook && (<div className="add-book">
+                <input 
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Book title"
+                />
+                <input 
+                    value={newCurrentPage}
+                    onChange={(e) => setNewCurrentPage(e.target.value)}
+                    placeholder="Current page"
+                    type="number"
+                />
+                <input 
+                    value={newTotalPages}
+                    onChange={(e) => setNewTotalPages(e.target.value)}
+                    placeholder="Total pages"
+                    type="number"
+                />
+                <button onClick={addBookFunc}>Add Book</button>
+            </div>)}
 
             <div>
                 {books.map((book, index) => (
