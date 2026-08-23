@@ -2,12 +2,12 @@ import fastapi
 import pathlib
 import pydantic
 import json
+# CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to restrict web pages from making requests to a different domain than the one that served the web page. This is done to prevent malicious websites from accessing sensitive data on other domains without the user's consent. By default, web browsers block cross-origin requests for security reasons.
+from fastapi.middleware.cors import CORSMiddleware
 
 # what app is is the FastAPI instance, we will use it to define our endpoints and run the server
 app = fastapi.FastAPI()
 
-# CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to restrict web pages from making requests to a different domain than the one that served the web page. This is done to prevent malicious websites from accessing sensitive data on other domains without the user's consent. By default, web browsers block cross-origin requests for security reasons.
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -98,7 +98,7 @@ async def add_book(username: str, book: Book):
 
         with open(file, 'w') as f: # we write here and not append because we read the existing data, modify and re-wrtie (overwriting the previous data).
                 json.dump(userData, f)
-        return fastapi.responses.JSONResponse(content={"message": "Successfully added entry!"}, status_code=200)
+        return fastapi.responses.JSONResponse(content={"message": "Successfully added entry!"}, status_code=201)
 
 @app.put("/books/{username}/{prevBookName}") # we have prevBookName in the url because data can only be retrieved from body or from url and since we cant send two Book as python wont know which json structure to parse to prevBook and updatedBook, we changed prevBook to just the name and now we send it through url
 async def update_book(username: str, prevBookName: str, updatesToBook: Book):
@@ -147,6 +147,7 @@ async def delete_book(username: str, bookName: str):
             with open(file, "w") as f:
                 json.dump(userData, f)
             return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' successfully removed"}, status_code=200)
+    return fastapi.responses.JSONResponse(content={"error": f"Book '{bookName}' not found"}, status_code=404)
     
 # to run use -> python -m uvicorn main:app --reload
 
