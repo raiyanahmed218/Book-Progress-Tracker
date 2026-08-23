@@ -4,7 +4,10 @@ import pydantic
 import json
 # CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to restrict web pages from making requests to a different domain than the one that served the web page. This is done to prevent malicious websites from accessing sensitive data on other domains without the user's consent. By default, web browsers block cross-origin requests for security reasons.
 from fastapi.middleware.cors import CORSMiddleware
-
+# what we will use to hash.
+from passlib.context import CryptContext
+# settings for the hash we will use.
+pwd_context = CryptContext(schemes=["bcrypt"])
 # what app is is the FastAPI instance, we will use it to define our endpoints and run the server
 app = fastapi.FastAPI()
 
@@ -20,6 +23,10 @@ class Book(pydantic.BaseModel): # this handles automatic parsing from body to fi
     title: str
     total_pages: int = pydantic.Field(gt=0)
     current_page: int = pydantic.Field(ge=0)
+
+class NewUser(pydantic.BaseModel):
+    password: str
+
 
 # this is the root endpoint, just to check if the server is running, we can test it by going to http://
 @app.get("/")
@@ -47,18 +54,18 @@ async def get_books(username: str):
 
 # add a new user 
 @app.post("/newUser/{newUserName}")
-async def make_new_user(newUserName: str):
+async def make_new_user(newUserName: str, newUser: NewUser):
     file = pathlib.Path("Users") / f"{newUserName}.json"
     # this makes the parent directory if it doesn't exist, and if it does exist, it does nothing because of exist_ok=True, and parents=True allows it to make multiple levels of directories if needed, but in this case we only have one level of directory which is "Users"
     file.parent.mkdir(exist_ok=True, parents=True)
     # if the file already exists, return an error 
     if file.exists():
         return fastapi.responses.JSONResponse(content={"error": f"User '{newUserName}' already exists"}, status_code=409)
-    password = "" # we can add password functionality later, but for now we just have an empty string for the password field in the json file, and we can also add a "books" field which is an empty list to hold the user's books, so that when we add a book we can just append to that list and write it back to the file, instead of having to check if the file is empty or not and then decide whether to create a new list or append to the existing one.
+
     try:
         # this makes the file
         with open(file, 'w') as f:
-            json.dump({"password": password, "books": []}, f)
+            json.dump({"password": pwd_context.hash(newUser.password), "books": []}, f)
         return fastapi.responses.JSONResponse(content={"message": f"User '{newUserName}' successfully created"}, status_code=201)
     except OSError as e:
         return fastapi.responses.JSONResponse(content={"error": str(e)}, status_code=400)
