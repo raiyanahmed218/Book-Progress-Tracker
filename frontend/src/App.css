@@ -40,11 +40,25 @@
 }
 
 .book-item {
-    border: 5px solid #ccc;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 10px solid #ccc;
     border-radius: 6px;
     padding: 20px;
     margin-bottom: 20px;
-    text-align: left;
+}
+
+.book-item .image {
+    width: 120px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.book-item .book-info {
+    flex: 1;
 }
 
 .h2InLine {
@@ -77,14 +91,39 @@
   @media (max-width: 1024px) {
     font-size: 20px;
   }
-  text-decoration: underline;
+  text-decoration: underline double;
 }
 
 .add-book {
     font-size: 24px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
     margin-top: 20px;
     margin-bottom: 50px;
+    
 }
+
+.add-book button{
+    font-size: 20px;
+    color: #E8E9EB;
+    background-color: #EF6461;
+    border: none;
+    border-radius: 6px;
+    padding: 14px 28px;
+    cursor: pointer;
+}
+
+.add-book button:hover {
+    color: #E8E9EB;
+    background-color: #c99a4e;
+}
+
+.add-book input {
+    padding: 14px 18px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 20px;
+    outline: none;
+}
+

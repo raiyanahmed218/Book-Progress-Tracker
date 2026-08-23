@@ -19,7 +19,10 @@ function App() {
     const [newTitle, setNewTitle] = React.useState("")
     const [newTotalPages, setNewTotalPages] = React.useState("")
     const [newCurrentPage, setNewCurrentPage] = React.useState("")
-    
+    const [covers, setCovers] = React.useState({})
+
+
+
     async function getBooks() {
         setLoading(true)
         setErrors("")
@@ -45,6 +48,12 @@ function App() {
             setNewUser(false)
             setBooks(data)
             setAddBook(true)
+            const coverMap = {}
+            for (const book of data) {
+                const url = await getBookCover(book.title)
+                if (url) coverMap[book.title] = url
+            }
+            setCovers(coverMap)
         } catch (err) {
             setErrors(err.message)
         } finally {
@@ -113,6 +122,16 @@ function App() {
         }
     }
 
+    async function getBookCover(title) {
+        const response = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`)
+        const data = await response.json()
+        const coverId = data.docs[0]?.cover_i
+        if (coverId) {
+            return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+        }
+        return "/BookCoverNotFound.jpg" // default image if no cover found
+    }
+
     return (
         <div className="container">
             <h1>Book Page Tracker</h1>
@@ -171,9 +190,12 @@ function App() {
             <div>
                 {books.map((book, index) => (
                     <div className="book-item" key={index}>
-                        <h4 className="h4InLine">Book: {index + 1}</h4>
-                        <h2 className="h2InLine">Title: {book.title}</h2>
-                        <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
+                        <img className="image" src={covers[book.title]} alt={book.title} />
+                        <div className="book-info">
+                            <h4 className="h4InLine">Book: {index + 1}</h4>
+                            <h2 className="h2InLine">Title: {book.title}</h2>
+                            <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
+                        </div>
                     </div>
                 ))}
             </div>
