@@ -192,8 +192,8 @@ function App() {
                     <div className="book-item" key={index}>
                         <img className="image" src={covers[book.title]} alt={book.title} />
                         <div className="book-info">
-                            <h4 className="h4InLine">Book: {index + 1}</h4>
-                            <h2 className="h2InLine">Title: {book.title}</h2>
+                            <h4 className="h4InLine">Book {index + 1}</h4>
+                            <h2 className="h2InLine">{book.title}</h2>
                             <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
                         </div>
                     </div>
