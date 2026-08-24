@@ -126,4 +126,8 @@
     font-size: 20px;
     outline: none;
 }
-
+.welcome-message {
+    font-size: 50px;
+    color: #E8E9EB;
+    margin-bottom: 20px;
+}
