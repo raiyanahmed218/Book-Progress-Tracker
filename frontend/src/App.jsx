@@ -1,5 +1,6 @@
 import React from "react"
 import './App.css'
+
 function App() {
     // Using array destructuring to get the username and setUsername from useState
     // state[0] is the current value of username, and state[1] is the function to update it called the setter
@@ -20,7 +21,8 @@ function App() {
     const [newTotalPages, setNewTotalPages] = React.useState("")
     const [newCurrentPage, setNewCurrentPage] = React.useState("")
     const [covers, setCovers] = React.useState({})
-
+    const [token, setToken] = React.useState("")
+    const [loggedIn, setLoggedIn] = React.useState(false)
 
 
     async function getBooks() {
@@ -36,7 +38,7 @@ function App() {
 
             if (response.status == 404) {
                 setNewUser(true)
-                throw new Error("User Not Found")
+                throw new Error("User Not Found, make a new user")
             }
 
             if (!response.ok) {
@@ -132,6 +134,33 @@ function App() {
         return "/BookCoverNotFound.jpg" // default image if no cover found
     }
 
+    async function login() {
+        setLoading(true)
+        setErrors("")
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/login/${username}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password })
+            })
+            if (response.status === 401) throw new Error("Incorrect password")
+            if (response.status === 404) throw new Error("User not found")
+            if (!response.ok) throw new Error("Something went wrong")
+            
+            const data = await response.json()
+            setToken(data.token)
+            setLoggedIn(true)
+            setPassword("")
+            await getBooks()
+        } catch (err) {
+            setErrors(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+
+
     return (
         <div className="container">
             <h1>Book Page Tracker</h1>
@@ -144,6 +173,12 @@ function App() {
                 />
                 <button onClick={getBooks}>Load Books</button>
             </div>
+
+            {errors && (
+                <p style={{color: "red", marginBottom: "20px"}}>
+                    {errors}
+                </p>
+            )}
 
             {newUser && (
                 <div className="search-bar">
@@ -160,11 +195,7 @@ function App() {
 
             {loading && <p>Loading...</p>}
 
-            {errors && (
-                <p style={{color: "red"}}>
-                    {errors}
-                </p>
-            )}
+            
 
             {addBook && (<div className="add-book">
                 <input 

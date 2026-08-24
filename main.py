@@ -8,6 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 # settings for the hash we will use.
 pwd_context = CryptContext(schemes=["bcrypt"])
+
+from jose import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "your-secret-key-change-this"
+ALGORITHM = "HS256"
+
 # what app is is the FastAPI instance, we will use it to define our endpoints and run the server
 app = fastapi.FastAPI()
 
@@ -18,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class LoginUser(pydantic.BaseModel):
+    password: str
 
 class Book(pydantic.BaseModel): # this handles automatic parsing from body to fit the structure specified and matches exactly with the name of the keys in the model and from the body.
     title: str
@@ -155,9 +165,29 @@ async def delete_book(username: str, bookName: str):
                 json.dump(userData, f)
             return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' successfully removed"}, status_code=200)
     return fastapi.responses.JSONResponse(content={"error": f"Book '{bookName}' not found"}, status_code=404)
-    
-# to run use -> python -m uvicorn main:app --reload
 
+@app.post("/login/{username}")
+async def login(username: str, loginUser: LoginUser):
+    file = get_user_file(username)
+    if not file:
+        return fastapi.responses.JSONResponse(content={"error": "User not found"}, status_code=404)
+    
+    with open(file, 'r') as f:
+        userData = json.load(f)
+    
+    if not pwd_context.verify(loginUser.password, userData["password"]):
+        return fastapi.responses.JSONResponse(content={"error": "Incorrect password"}, status_code=401)
+    
+    token = jwt.encode({
+        "sub": username,
+        "exp": datetime.utcnow() + timedelta(hours=24)
+    }, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return fastapi.responses.JSONResponse(content={"token": token}, status_code=200)
+
+
+# to run use -> python -m uvicorn main:app --reload
+# python3 -m uvicorn main:app --reload
 
 
 
