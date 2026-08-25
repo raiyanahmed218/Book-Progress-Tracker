@@ -1,52 +1,91 @@
 .container {
-    max-width: 600px;
+    width: 100%;
+    max-width: 1920px;
     margin: 0 auto;
     padding: 40px 20px;
-    font-family: sans-serif;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #2F2F2F;
+}
+
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.header {
+    text-align: left;
 }
 
 .search-bar {
     display: flex;
     gap: 8px;
-    margin-bottom: 50px;
+    margin-bottom: 10px;
+    width: 320px;
+    height: 50px;
 }
 
 .search-bar input {
-    flex: 1;
+    flex: none;
     padding: 14px 18px;
-    border: 1px solid #ccc;
+    border: 1px solid #93827F;
     border-radius: 6px;
-    font-size: 20px;
+    font-size: 16px;
     outline: none;
+    background-color: #2F2F2F;
+    color: #F3F9D2;
+}
+
+.search-bar input:focus {
+    border-color: #F3F9D2;
+}
+
+.search-bar input::placeholder {
+    color: #93827F;
 }
 
 .search-bar button {
     padding: 14px 28px;
-    background-color: #EF6461;
+    background-color: #F3F9D2;
+    color: #2F2F2F;
     border: none;
     border-radius: 6px;
-    font-size: 20px;
+    font-size: 15px;
     cursor: pointer;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
-.search-bar input:focus {
-    border-color: #E4B363;
-}
-
-
 
 .search-bar button:hover {
-    background-color: #c99a4e;
+    background-color: #BDC4A7;
+}
+
+.book-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 20px;
 }
 
 .book-item {
     display: flex;
     align-items: center;
     gap: 20px;
-    border: 10px solid #ccc;
+    border: 2px solid #93827F;
     border-radius: 6px;
     padding: 20px;
     margin-bottom: 20px;
+    text-align: left;
 }
 
 .book-item .image {
@@ -62,52 +101,59 @@
 }
 
 .h2InLine {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  color: #EF6461;
-  margin: 0 0 10px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+    font-size: 24px;
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    color: #F3F9D2;
+    margin: 0 0 10px;
 }
+
 .h3InLine {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  color: #E8E9EB;
-  margin: 0 0 10px;
-  @media (max-width: 1024px) {
     font-size: 20px;
-  }
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    color: #92B4A7;
+    margin: 0 0 10px;
 }
 
 .h4InLine {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  color: #c99a4e;
-  margin: 0 0 10px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-  text-decoration: underline double;
+    font-size: 16px;
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    color: #93827F;
+    margin: 0 0 10px;
+    text-decoration: underline double;
 }
 
 .add-book {
-    font-size: 24px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
     margin-top: 20px;
     margin-bottom: 50px;
-    
+    width: 100%;
+    max-width: 800px;
 }
 
-.add-book button{
-    font-size: 20px;
-    color: #E8E9EB;
-    background-color: #EF6461;
+.add-book input {
+    padding: 14px 18px;
+    border: 1px solid #93827F;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+    background-color: #2F2F2F;
+    color: #F3F9D2;
+    flex: 1;
+}
+
+.add-book input::placeholder {
+    color: #93827F;
+}
+
+.add-book button {
+    font-size: 16px;
+    color: #2F2F2F;
+    background-color: #F3F9D2;
     border: none;
     border-radius: 6px;
     padding: 14px 28px;
@@ -115,19 +161,28 @@
 }
 
 .add-book button:hover {
-    color: #E8E9EB;
-    background-color: #c99a4e;
+    background-color: #BDC4A7;
 }
 
-.add-book input {
-    padding: 14px 18px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 20px;
-    outline: none;
-}
 .welcome-message {
-    font-size: 50px;
-    color: #E8E9EB;
+    font-size: 40px;
+    color: #F3F9D2;
     margin-bottom: 20px;
+    font-family: 'Courier New', monospace;
+    text-align: left;
+}
+
+.signout button {
+    font-size: 16px;
+    background-color: #93827F;
+    color: #F3F9D2;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.signout button:hover {
+    background-color: #92B4A7;
+    color: #2F2F2F;
 }

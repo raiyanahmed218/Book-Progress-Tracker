@@ -8,7 +8,7 @@ function App() {
 
     const [username, setUsername] = React.useState("")         // the username typed in the search bar
     const [password, setPassword] = React.useState("")         // password input, reused for both login and create account
-    const [token, setToken] = React.useState("")               // JWT token returned from the server after login
+    const [token, setToken] = React.useState(localStorage.getItem("token") || "")               // JWT token returned from the server after login
     const [loggedIn, setLoggedIn] = React.useState(false)      // whether the user is logged in
     const [showLogin, setShowLogin] = React.useState(false)    // show the login password form (user exists)
     const [showCreateAccount, setShowCreateAccount] = React.useState(false) // show create account form (user doesn't exist)
@@ -23,6 +23,8 @@ function App() {
     const [loading, setLoading] = React.useState(false)        // whether a request is in flight
     const [errors, setErrors] = React.useState("")             // error message to display
     const [success, setSuccess] = React.useState("")           // success message to display
+
+    const [okButtonClicked, setOkButtonClicked] = React.useState(false) // whether the OK button was clicked to check user existence
 
     // --- FUNCTIONS ---
 
@@ -42,9 +44,12 @@ function App() {
                 setShowCreateAccount(true)
                 throw new Error("User not found — create an account to continue")
             }
-            if (!response.ok) throw new Error("Something went wrong")
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
             // user exists, show the login form
             setShowLogin(true)
+            setOkButtonClicked(true)
         } catch (err) {
             setErrors(err.message)
         } finally {
@@ -65,16 +70,23 @@ function App() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ password })  // send password in body, not URL, for security
             })
-            if (response.status === 401) throw new Error("Incorrect password")
-            if (response.status === 404) throw new Error("User not found")
-            if (!response.ok) throw new Error("Something went wrong")
-
+            if (response.status === 401) {
+                throw new Error("Incorrect password")
+            }
+            if (response.status === 404) {
+                throw new Error("User not found")
+            }
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
             const data = await response.json()
             setToken(data.token)       // store the JWT token for future authenticated requests
             setLoggedIn(true)          // mark the user as logged in
             setShowLogin(false)        // hide the login form
             setPassword("")            // clear the password field
             setSuccess("")
+            // after login, save to localStorage
+            localStorage.setItem("token", data.token)
             await getBooks()           // load the user's books
         } catch (err) {
             setErrors(err.message)
@@ -95,8 +107,12 @@ function App() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ password })
             })
-            if (response.status === 409) throw new Error("Username already exists")
-            if (!response.ok) throw new Error("Something went wrong")
+            if (response.status === 409) {
+                throw new Error("Username already exists")
+            }
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
 
             setSuccess("Account created! Logging you in...")
             setShowCreateAccount(false)
@@ -117,7 +133,9 @@ function App() {
         setAddBook(false)
         try {
             const response = await fetch(`http://127.0.0.1:8000/books/${username}`)
-            if (!response.ok) throw new Error("Something went wrong")
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
 
             const data = await response.json()
             setBooks(data)
@@ -127,7 +145,9 @@ function App() {
             const coverMap = {}
             for (const book of data) {
                 const url = await getBookCover(book.title)
-                if (url) coverMap[book.title] = url
+                if (url) {
+                    coverMap[book.title] = url
+                }
             }
             setCovers(coverMap)
         } catch (err) {
@@ -152,7 +172,9 @@ function App() {
                     total_pages: parseInt(newTotalPages)
                 })
             })
-            if (!response.ok) throw new Error("Something went wrong")
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
             await getBooks()        // refresh the book list after adding
             setNewTitle("")         // clear the input fields
             setNewCurrentPage("")
@@ -171,19 +193,53 @@ function App() {
         const response = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`)
         const data = await response.json()
         const coverId = data.docs[0]?.cover_i  // ?. means "if docs[0] exists, get cover_i, otherwise return undefined"
-        if (coverId) return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+        if (coverId) {
+            return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`
+        }
         return "/BookCoverNotFound.jpg"         // default image if no cover found
+    }
+
+    async function signOut() {
+        localStorage.removeItem("token")
+        setToken("")
+        setLoggedIn(false)
+        setUsername("")
+        setPassword("")
+        setShowLogin(false)
+        setShowCreateAccount(false)
+        setBooks([])
+        setCovers({})
+        setAddBook(false)
+        setErrors("")
+        setSuccess("")
+        setNewTitle("")
+        setNewCurrentPage("")
+        setNewTotalPages("")
+        setOkButtonClicked(false)
     }
 
     // --- RENDER ---
     // each section is conditionally rendered based on state
     return (
         <div className="container">
-            <h1>Book Page Tracker</h1>
-            <h2>Track the progress of books you are reading!</h2>
+            <div className="header-bar">
+                <div className="header">
+                    <h1>Book Page Tracker</h1>
+                    <h2>Track the progress of books you are reading!</h2>
+                </div>
+                {loggedIn && (
+                    <div className="signout">
+                        <button onClick={signOut}>Sign Out</button>
+                    </div>
+                )}
+            </div>
 
             {/* username search bar — hidden after logging in */}
-            {loggedIn && <h3 className="welcome-message">Welcome, {username}</h3>}
+            {loggedIn && (
+                <div className="welcome">
+                    <h3 className="welcome-message">Welcome, {username}!</h3>
+                </div>
+            )}
             {!loggedIn && (
                 <div className="search-bar">
                     <input
@@ -191,7 +247,7 @@ function App() {
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Enter username"
                     />
-                    <button onClick={checkUser}>OK</button>
+                    {!okButtonClicked && <button onClick={checkUser}>OK</button>}
                 </div>
             )}
 
@@ -250,7 +306,7 @@ function App() {
             )}
 
             {/* book list */}
-            <div>
+            <div className="book-list">
                 {books.map((book, index) => (
                     <div className="book-item" key={index}>
                         <img className="image" src={covers[book.title]} alt={book.title} />
