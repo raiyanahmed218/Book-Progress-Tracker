@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 # settings for the hash we will use.
 pwd_context = CryptContext(schemes=["bcrypt"])
 
+# we will use this to generate and verify JWT tokens for authentication.
 from jose import jwt
 from datetime import datetime, timedelta
 
@@ -18,7 +19,7 @@ ALGORITHM = "HS256"
 # what app is is the FastAPI instance, we will use it to define our endpoints and run the server
 app = fastapi.FastAPI()
 
-
+# CORS middleware is added to the FastAPI application to allow cross-origin requests from the specified origin (http://localhost:5173). This is necessary for the frontend (running on a different port) to communicate with the backend API without being blocked by the browser's same-origin policy.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -26,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Pydantic models are used to define the structure and validation of data that is sent to and received from the API. They help ensure that the data adheres to the expected format and types, making it easier to work with and reducing the likelihood of errors.
 class LoginUser(pydantic.BaseModel):
     password: str
 
@@ -117,6 +119,7 @@ async def add_book(username: str, book: Book):
                 json.dump(userData, f)
         return fastapi.responses.JSONResponse(content={"message": "Successfully added entry!"}, status_code=201)
 
+# update a book for a user that exists
 @app.put("/books/{username}/{prevBookName}") # we have prevBookName in the url because data can only be retrieved from body or from url and since we cant send two Book as python wont know which json structure to parse to prevBook and updatedBook, we changed prevBook to just the name and now we send it through url
 async def update_book(username: str, prevBookName: str, updatesToBook: Book):
     file = get_user_file(username)
@@ -146,6 +149,7 @@ async def update_book(username: str, prevBookName: str, updatesToBook: Book):
     
     return fastapi.responses.JSONResponse(content={"error": f"Book '{prevBookName}' not found"}, status_code=404)
 
+# delete a book for a user that exists
 @app.delete("/books/{username}/{bookName}")
 async def delete_book(username: str, bookName: str):
     file = get_user_file(username)
@@ -166,6 +170,7 @@ async def delete_book(username: str, bookName: str):
             return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' successfully removed"}, status_code=200)
     return fastapi.responses.JSONResponse(content={"error": f"Book '{bookName}' not found"}, status_code=404)
 
+# login a user
 @app.post("/login/{username}")
 async def login(username: str, loginUser: LoginUser):
     file = get_user_file(username)

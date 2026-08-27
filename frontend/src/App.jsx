@@ -198,7 +198,7 @@ function App() {
         }
         return "/BookCoverNotFound.jpg"         // default image if no cover found
     }
-
+    // signOut: clears the token and resets all state to initial values
     async function signOut() {
         localStorage.removeItem("token")
         setToken("")
@@ -217,7 +217,8 @@ function App() {
         setNewTotalPages("")
         setOkButtonClicked(false)
     }
-
+    // deleteBook: called when the user clicks Delete on a book
+    // sends a DELETE request to the server and refreshes the book list
     async function deleteBook(bookTitle) {
         setLoading(true)
         setErrors("")
