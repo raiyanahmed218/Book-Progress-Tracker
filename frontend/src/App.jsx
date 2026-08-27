@@ -218,6 +218,24 @@ function App() {
         setOkButtonClicked(false)
     }
 
+    async function deleteBook(bookTitle) {
+        setLoading(true)
+        setErrors("")
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/books/${username}/${encodeURIComponent(bookTitle)}`, {
+                method: "DELETE"
+            })
+            if (!response.ok) {
+                throw new Error("Something went wrong")
+            }
+            await getBooks()
+        } catch (err) {
+            setErrors(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // --- RENDER ---
     // each section is conditionally rendered based on state
     return (
@@ -314,6 +332,7 @@ function App() {
                             <h4 className="h4InLine">Book {index + 1}</h4>
                             <h2 className="h2InLine">{book.title}</h2>
                             <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
+                            <button className="delete-btn" onClick={() => deleteBook(book.title)}>Delete</button>
                         </div>
                     </div>
                 ))}
