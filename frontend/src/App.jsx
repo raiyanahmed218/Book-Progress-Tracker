@@ -25,6 +25,7 @@ function App() {
     const [success, setSuccess] = React.useState("")           // success message to display
 
     const [okButtonClicked, setOkButtonClicked] = React.useState(false) // whether the OK button was clicked to check user existence
+    const [editingBook, setEditingBook] = React.useState(null) // title of book being edited, null if adding new
 
     // --- FUNCTIONS ---
 
@@ -163,22 +164,36 @@ function App() {
         setLoading(true)
         setErrors("")
         try {
-            const response = await fetch(`http://127.0.0.1:8000/books/${username}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: newTitle,
-                    current_page: parseInt(newCurrentPage), // parseInt because input values are always strings
-                    total_pages: parseInt(newTotalPages)
+            if (editingBook) {
+                // update existing book via PUT
+                const response = await fetch(`http://127.0.0.1:8000/books/${username}/${encodeURIComponent(editingBook)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        current_page: parseInt(newCurrentPage),
+                        total_pages: parseInt(newTotalPages)
+                    })
                 })
-            })
-            if (!response.ok) {
-                throw new Error("Something went wrong")
+                if (!response.ok) throw new Error("Something went wrong")
+            } else {
+                // add new book via POST
+                const response = await fetch(`http://127.0.0.1:8000/books/${username}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        current_page: parseInt(newCurrentPage),
+                        total_pages: parseInt(newTotalPages)
+                    })
+                })
+                if (!response.ok) throw new Error("Something went wrong")
             }
-            await getBooks()        // refresh the book list after adding
-            setNewTitle("")         // clear the input fields
+            await getBooks()
+            setNewTitle("")
             setNewCurrentPage("")
             setNewTotalPages("")
+            setEditingBook(null)
         } catch (err) {
             setErrors(err.message)
         } finally {
@@ -235,6 +250,15 @@ function App() {
         } finally {
             setLoading(false)
         }
+    }
+
+    // startEditing: populates the add/edit form with the book's current data
+    function startEditing(book) {
+        setEditingBook(book.title)
+        setNewTitle(book.title)
+        setNewCurrentPage(book.current_page)
+        setNewTotalPages(book.total_pages)
+        window.scrollTo(0, 0)  // scroll to top where the form is
     }
 
     // --- RENDER ---
@@ -320,7 +344,7 @@ function App() {
                         placeholder="Total pages"
                         type="number"
                     />
-                    <button onClick={addBookFunc}>Add Book</button>
+                    <button onClick={addBookFunc}>{editingBook ? "Update Book" : "Add Book"}</button>
                 </div>
             )}
 
@@ -334,6 +358,7 @@ function App() {
                             <h2 className="h2InLine">{book.title}</h2>
                             <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
                             <button className="delete-btn" onClick={() => deleteBook(book.title)}>Delete</button>
+                            <button className="edit-btn" onClick={() => startEditing(book)}>Edit</button>
                         </div>
                     </div>
                 ))}
