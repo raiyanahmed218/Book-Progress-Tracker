@@ -25,6 +25,7 @@ function App() {
     const [success, setSuccess] = React.useState("")           // success message to display
 
     const [okButtonClicked, setOkButtonClicked] = React.useState(false) // whether the OK button was clicked to check user existence
+    const [editingBook, setEditingBook] = React.useState(null) // title of book being edited, null if adding new
 
     // --- FUNCTIONS ---
 
@@ -45,7 +46,8 @@ function App() {
                 throw new Error("User not found — create an account to continue")
             }
             if (!response.ok) {
-                throw new Error("Something went wrong")
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
             }
             // user exists, show the login form
             setShowLogin(true)
@@ -77,7 +79,8 @@ function App() {
                 throw new Error("User not found")
             }
             if (!response.ok) {
-                throw new Error("Something went wrong")
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
             }
             const data = await response.json()
             setToken(data.token)       // store the JWT token for future authenticated requests
@@ -111,7 +114,8 @@ function App() {
                 throw new Error("Username already exists")
             }
             if (!response.ok) {
-                throw new Error("Something went wrong")
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
             }
 
             setSuccess("Account created! Logging you in...")
@@ -134,7 +138,8 @@ function App() {
         try {
             const response = await fetch(`http://127.0.0.1:8000/books/${username}`)
             if (!response.ok) {
-                throw new Error("Something went wrong")
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
             }
 
             const data = await response.json()
@@ -163,22 +168,42 @@ function App() {
         setLoading(true)
         setErrors("")
         try {
-            const response = await fetch(`http://127.0.0.1:8000/books/${username}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: newTitle,
-                    current_page: parseInt(newCurrentPage), // parseInt because input values are always strings
-                    total_pages: parseInt(newTotalPages)
+            if (editingBook) {
+                // update existing book via PUT
+                const response = await fetch(`http://127.0.0.1:8000/books/${username}/${encodeURIComponent(editingBook)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        current_page: parseInt(newCurrentPage),
+                        total_pages: parseInt(newTotalPages)
+                    })
                 })
-            })
-            if (!response.ok) {
-                throw new Error("Something went wrong")
+                if (!response.ok) {
+                    const data = await response.json()
+                    throw new Error(data.error || "Something went wrong")
+                }
+            } else {
+                // add new book via POST
+                const response = await fetch(`http://127.0.0.1:8000/books/${username}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        current_page: parseInt(newCurrentPage),
+                        total_pages: parseInt(newTotalPages)
+                    })
+                })
+                if (!response.ok) {
+                    const data = await response.json()
+                    throw new Error(data.error || "Something went wrong")
+                }
             }
-            await getBooks()        // refresh the book list after adding
-            setNewTitle("")         // clear the input fields
+            await getBooks()
+            setNewTitle("")
             setNewCurrentPage("")
             setNewTotalPages("")
+            setEditingBook(null)
         } catch (err) {
             setErrors(err.message)
         } finally {
@@ -227,7 +252,38 @@ function App() {
                 method: "DELETE"
             })
             if (!response.ok) {
-                throw new Error("Something went wrong")
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
+            }
+            await getBooks()
+        } catch (err) {
+            setErrors(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // startEditing: populates the add/edit form with the book's current data
+    function startEditing(book) {
+        setEditingBook(book.title)
+        setNewTitle(book.title)
+        setNewCurrentPage(book.current_page)
+        setNewTotalPages(book.total_pages)
+        window.scrollTo(0, 0)  // scroll to top where the form is
+    }
+
+    async function plusButton(book) {
+        setLoading(true)
+        setErrors("")
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/books/${username}/${encodeURIComponent(book.title)}/increment`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ current_page: book.current_page + 1 })
+            })
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || "Something went wrong")
             }
             await getBooks()
         } catch (err) {
@@ -296,10 +352,6 @@ function App() {
                 </div>
             )}
 
-            {errors && <p style={{color: "red", marginBottom: "20px"}}>{errors}</p>}
-            {success && <p style={{color: "green"}}>{success}</p>}
-            {loading && <p>Loading...</p>}
-
             {/* add book form — shown after logging in */}
             {addBook && (
                 <div className="add-book">
@@ -320,9 +372,12 @@ function App() {
                         placeholder="Total pages"
                         type="number"
                     />
-                    <button onClick={addBookFunc}>Add Book</button>
+                    <button onClick={addBookFunc}>{editingBook ? "Update Book" : "Add Book"}</button>
                 </div>
             )}
+
+            {errors && <p style={{color: "red", marginBottom: "20px"}}>{errors}</p>}
+            {success && <p style={{color: "green"}}>{success}</p>}
 
             {/* book list */}
             <div className="book-list">
@@ -332,12 +387,20 @@ function App() {
                         <div className="book-info">
                             <h4 className="h4InLine">Book {index + 1}</h4>
                             <h2 className="h2InLine">{book.title}</h2>
-                            <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
+                            <div className="page-row">
+                                <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
+                                <button className="increment-btn" onClick={() => plusButton(book)}>+</button>
+                            </div>
                             <button className="delete-btn" onClick={() => deleteBook(book.title)}>Delete</button>
+                            <button className="edit-btn" onClick={() => startEditing(book)}>Edit</button>
                         </div>
                     </div>
                 ))}
             </div>
+
+            {loading && <p>Loading...</p>}
+
+
         </div>
     )
 }
