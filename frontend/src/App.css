@@ -141,7 +141,7 @@
     border-radius: 6px;
     font-size: 16px;
     outline: none;
-    background-color: #2F2F2F;
+    background-color: #222222;
     color: #F3F9D2;
     flex: 1;
 }
@@ -218,4 +218,39 @@
 
 .book-item:hover .edit-btn {
     opacity: 1;
+}
+
+
+.increment-btn {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    background-color: #F3F9D2;
+    color: #93827F;
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.increment-btn:hover {
+    background-color: #BDC4A7;
+    color: #2F2F2F;
+}
+
+.page-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 10px;
+}
+
+.page-row .h3InLine {
+    margin: 0;
 }

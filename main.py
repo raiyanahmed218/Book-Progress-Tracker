@@ -106,7 +106,8 @@ async def add_book(username: str, book: BookModel, db: Session = fastapi.Depends
     existing_book = db.query(Book).filter(Book.username == username, Book.title == book.title).first()
     if existing_book:
         return fastapi.responses.JSONResponse(content={"error": "Book already exists"}, status_code=409)
-    
+    if book.current_page > book.total_pages:
+        return fastapi.responses.JSONResponse(content={"error": "Current page cannot exceed total pages"}, status_code=400)
     new_book = Book(username=username, title=book.title, total_pages=book.total_pages, current_page=book.current_page)
     db.add(new_book)
     db.commit()
@@ -122,8 +123,26 @@ async def update_book(username: str, prevBookName: str, updatesToBook: BookModel
     book.title = updatesToBook.title
     book.total_pages = updatesToBook.total_pages
     book.current_page = updatesToBook.current_page
+    if book.current_page > book.total_pages:
+        return fastapi.responses.JSONResponse(content={"error": "Current page cannot exceed total pages"}, status_code=400)
     db.commit()
     return fastapi.responses.JSONResponse(content={"message": f"Book '{prevBookName}' successfully updated"}, status_code=200)
+
+# increment the current page of a book
+@app.put("/books/{username}/{bookName}/increment")
+async def increment_book_page(username: str, bookName: str, db: Session = fastapi.Depends(get_db)):
+    book = db.query(Book).filter(Book.username == username, Book.title == bookName).first()
+    if not book:
+        return fastapi.responses.JSONResponse(content={"error": f"Book '{bookName}' not found"}, status_code=404)
+    else:
+        if book.current_page < book.total_pages:
+            book.current_page += 1
+            db.commit()
+            return fastapi.responses.JSONResponse(content={"message": f"Book '{bookName}' page incremented to {book.current_page}"}, status_code=200)
+        else:
+            return fastapi.responses.JSONResponse(content={"error": f"Cannot increment. Current page {book.current_page} is already at or exceeds total pages {book.total_pages}"}, status_code=400)
+
+
 
 # delete a book
 @app.delete("/books/{username}/{bookName}")
