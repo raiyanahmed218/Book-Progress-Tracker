@@ -60,7 +60,7 @@ async def get_books(username: str, db: Session = fastapi.Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         return fastapi.responses.JSONResponse(content={"error": "User not found"}, status_code=404)
-    books = db.query(Book).filter(Book.username == username).all()
+    books = db.query(Book).filter(Book.username == username).order_by(Book.id).all()
     return fastapi.responses.JSONResponse(content=[
         {"title": b.title, "total_pages": b.total_pages, "current_page": b.current_page}
         for b in books

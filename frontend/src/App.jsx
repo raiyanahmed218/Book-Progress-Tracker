@@ -1,5 +1,9 @@
 import React from "react"
 import './App.css'
+import BookCard from "./BookCard"
+import AddBookForm from "./AddBookForm"
+import LoginForm from "./LoginForm"
+import SignupForm from "./SignupForm"
 
 function App() {
     // --- STATE ---
@@ -315,65 +319,43 @@ function App() {
                     <h3 className="welcome-message">Welcome, {username}!</h3>
                 </div>
             )}
-            {!loggedIn && (
-                <div className="search-bar">
-                    <input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter username"
-                    />
-                    {!okButtonClicked && <button onClick={checkUser}>OK</button>}
-                </div>
-            )}
 
-            {/* login form — shown when user exists and needs to enter password */}
-            {showLogin && (
-                <div className="search-bar">
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter password"
-                    />
-                    <button onClick={login}>Login</button>
-                </div>
+            {!loggedIn && (
+                <LoginForm
+                    username={username}
+                    setUsername={setUsername}
+                    password={password}
+                    setPassword={setPassword}
+                    onLogin={login}
+                    onCheckUser={checkUser}
+                    showLogin={showLogin}
+                    okButtonClicked={okButtonClicked}
+                />
             )}
 
             {/* create account form — shown when user doesn't exist */}
             {showCreateAccount && (
-                <div className="search-bar">
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Choose a password"
-                    />
-                    <button onClick={createAccount}>Create Account</button>
-                </div>
+                <SignupForm
+                    username={username}
+                    setUsername={setUsername}
+                    password={password}
+                    setPassword={setPassword}
+                    onSignup={createAccount}
+                />
             )}
 
             {/* add book form — shown after logging in */}
             {addBook && (
-                <div className="add-book">
-                    <input
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        placeholder="Book title"
-                    />
-                    <input
-                        value={newCurrentPage}
-                        onChange={(e) => setNewCurrentPage(e.target.value)}
-                        placeholder="Current page"
-                        type="number"
-                    />
-                    <input
-                        value={newTotalPages}
-                        onChange={(e) => setNewTotalPages(e.target.value)}
-                        placeholder="Total pages"
-                        type="number"
-                    />
-                    <button onClick={addBookFunc}>{editingBook ? "Update Book" : "Add Book"}</button>
-                </div>
+                <AddBookForm
+                    newTitle={newTitle}
+                    setNewTitle={setNewTitle}
+                    newCurrentPage={newCurrentPage}
+                    setNewCurrentPage={setNewCurrentPage}
+                    newTotalPages={newTotalPages}
+                    setNewTotalPages={setNewTotalPages}
+                    onSubmit={addBookFunc}
+                    editingBook={editingBook}
+                />
             )}
 
             {errors && <p style={{color: "red", marginBottom: "20px"}}>{errors}</p>}
@@ -382,19 +364,15 @@ function App() {
             {/* book list */}
             <div className="book-list">
                 {books.map((book, index) => (
-                    <div className="book-item" key={index}>
-                        <img className="image" src={covers[book.title]} alt={book.title} />
-                        <div className="book-info">
-                            <h4 className="h4InLine">Book {index + 1}</h4>
-                            <h2 className="h2InLine">{book.title}</h2>
-                            <div className="page-row">
-                                <h3 className="h3InLine">Page {book.current_page} of {book.total_pages}</h3>
-                                <button className="increment-btn" onClick={() => plusButton(book)}>+</button>
-                            </div>
-                            <button className="delete-btn" onClick={() => deleteBook(book.title)}>Delete</button>
-                            <button className="edit-btn" onClick={() => startEditing(book)}>Edit</button>
-                        </div>
-                    </div>
+                    <BookCard
+                        key={index}
+                        index={index}
+                        book={book}
+                        cover={covers[book.title]}
+                        onDelete={deleteBook}
+                        onEdit={startEditing}
+                        onIncrement={plusButton}
+                    />
                 ))}
             </div>
 
